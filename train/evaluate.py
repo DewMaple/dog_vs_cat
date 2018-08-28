@@ -4,15 +4,16 @@ from argparse import ArgumentParser
 
 import cv2
 import numpy as np
-from keras.engine.saving import load_model
 
+from models.resetnet import build_model
 from train.utils import read_img, save_img, put_txt
 
 image_ext = ['jpg', 'jpeg', 'png', 'gif']
 
 
 def load(weight_path):
-    model = load_model(weight_path)
+    model = build_model(2, 224)
+    model = model.load_weights(weight_path, by_name=True, skip_mismatch=True)
     model.summary()
     return model
 

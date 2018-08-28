@@ -3,13 +3,14 @@ import os
 import sys
 from argparse import ArgumentParser
 
+import numpy as np
 from keras.callbacks import TensorBoard, ModelCheckpoint
 from keras.optimizers import Adam
 from keras_preprocessing.image import ImageDataGenerator
 
 sys.path.append('/Users/jcui/MachineLearning/dog_vs_cat/')
 
-from models.resetnet import build_model
+from models.resetnet import build_train_model
 
 LOGS_DIR = os.path.join(os.path.dirname(__file__), '../logs')
 NAME_PREFIX = 'dog_vs_cat'
@@ -30,18 +31,26 @@ def create_checkpoint():
 
 
 def main(train_dataset, val_dataset, epochs, batch_size, lr=0.001, image_size=224, weights_file=None):
-    train_gen = ImageDataGenerator(rescale=1. / 255). \
-        flow_from_directory(train_dataset, target_size=(image_size, image_size))
+    train_gen = ImageDataGenerator(
+        brightness_range=(0.6, 1),
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True,
+        rescale=1. / 255).flow_from_directory(train_dataset, target_size=(image_size, image_size))
 
     val_gen = ImageDataGenerator(rescale=1. / 255). \
         flow_from_directory(val_dataset, target_size=(image_size, image_size))
 
-    model = build_model(train_gen.num_classes, image_size)
+    model = build_train_model(train_gen.num_classes, image_size)
     if weights_file is not None:
         print('Loading weights file: {}'.format(weights_file))
-        model.load_weights(weights_file)
+        model.load_weights(weights_file, by_name=True, skip_mismatch=True)
 
-    model.compile(optimizer=Adam(lr=lr), loss='categorical_crossentropy', metrics=['accuracy'])
+    # model.compile(optimizer=Adam(lr=lr, decay=lr / 100), loss='categorical_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer=Adam(lr=lr, decay=lr / 100),
+                  loss=["categorical_crossentropy", lambda y_true, y_pred: y_pred],
+                  loss_weights=[1, 0.5],
+                  metrics={'fc_prediction': 'accuracy'})
 
     model.summary()
 
@@ -49,11 +58,21 @@ def main(train_dataset, val_dataset, epochs, batch_size, lr=0.001, image_size=22
     steps_per_epoch = train_gen.samples / batch_size
     val_steps = val_gen.samples / batch_size
 
-    model.fit_generator(train_gen,
+    def gen_wrapper(generator):
+
+        while True:
+            x, y = next(generator)
+            random_y = np.random.rand(x.shape[0], 1)
+
+            x_ = [x, np.argmax(y, axis=1)]
+            y_ = [y, random_y]
+            yield x_, y_
+
+    model.fit_generator(gen_wrapper(train_gen),
                         epochs=epochs,
                         steps_per_epoch=steps_per_epoch,
                         callbacks=callbacks,
-                        validation_data=val_gen,
+                        validation_data=gen_wrapper(val_gen),
                         validation_steps=val_steps,
                         verbose=1)
 

@@ -106,3 +106,5 @@ logs/
 *.pyc
 *.h5
 .idea/
+*.zip
+*.csv
