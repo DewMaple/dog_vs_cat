@@ -102,3 +102,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+logs/
+*.pyc
+*.h5
+.idea/
