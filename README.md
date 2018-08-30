@@ -4,6 +4,9 @@ Kaggle competition: Dogs vs. Cats Redux: Kernels Edition
 ## Usage
 
 ### Format dataset
+
+  format the dataset to the architecture that fit keras
+  
   $dog_vs_cat_dataset_dir: path of train directory in the dog vs cat dataset downloaded from kaggle, after you unzip the all.zip
   $target_dir: the directory where you want to put your output
 
@@ -25,7 +28,11 @@ Kaggle competition: Dogs vs. Cats Redux: Kernels Edition
 
     - evaluate
     $test_dataset_dir: path of test dataset directory of kaggle dog vs cat dataset
+<<<<<<< ae116d316e3d02884316a95ed4d8f0984bc30458
     
+=======
+
+>>>>>>> try inception_resnet_v2
     ```shell
     python train/evaluate.py weights_file_path $test_dataset_dir --out_dir $out_dir
     ```
