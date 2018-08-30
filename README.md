@@ -16,19 +16,24 @@ Kaggle competition: Dogs vs. Cats Redux: Kernels Edition
 
 ### training
 
-  - train resnet50
+  - train ResNet50
 
     ```shell
     python train/train_resnet50.py $train_dataset_dir $validation_dataset_dir --batch_size 256 --epochs 100 --lr 0.001
     ```
-  - train resnet50 with center loss
+  - train ResNet50 with center loss
     ```shell
     python train/train_resnet50_with_center_loss.py $train_dataset_dir $validation_dataset_dir --batch_size 256 --epochs 100 --lr 0.001
     ```
 
-    - evaluate
-    $test_dataset_dir: path of test dataset directory of kaggle dog vs cat dataset
-    
+    - train InceptionResNetV2 with center loss
     ```shell
-    python train/evaluate.py weights_file_path $test_dataset_dir --out_dir $out_dir
+    python train/train_inception_resnet_v2.py $train_dataset_dir $validation_dataset_dir --batch_size 256 --epochs 100 --lr 0.001
     ```
+
+### evaluate
+  $test_dataset_dir: path of test dataset directory of kaggle dog vs cat dataset
+
+  ```shell
+  python train/evaluate.py weights_file_path $test_dataset_dir --out_dir $out_dir
+  ```
