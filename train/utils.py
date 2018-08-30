@@ -48,6 +48,16 @@ def load_clustered_images(images_dir):
         yield label, file_paths
 
 
+def inception_process_img(image_file, target_size=150):
+    img = image.load_img(image_file, target_size=(target_size, target_size))
+    x = image.img_to_array(img)
+    x = np.expand_dims(x, axis=0)
+    x /= 255.
+    x -= 0.5
+    x *= 2.
+    return x
+
+
 def read_img(image_path, target_size, rescale=1):
     img = image.load_img(image_path, target_size=target_size)
     x = image.img_to_array(img)

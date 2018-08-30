@@ -5,15 +5,17 @@ from argparse import ArgumentParser
 import cv2
 import numpy as np
 
-from models.resetnet import build_model
+from models.resetnet import build_resnet50_model
 from train.utils import read_img, save_img, put_txt
 
 image_ext = ['jpg', 'jpeg', 'png', 'gif']
 
+input_size = 224
+
 
 def load(weight_path):
-    model = build_model(2, 224)
-    model = model.load_weights(weight_path, by_name=True, skip_mismatch=True)
+    model = build_resnet50_model(2, input_size)
+    model.load_weights(weight_path, by_name=True, skip_mismatch=True)
     model.summary()
     return model
 
@@ -21,17 +23,19 @@ def load(weight_path):
 def main(weight_path, dataset, out_dir):
     model = load(weight_path=weight_path)
 
+    count = 0
     results = []
     for root, dirs, files in os.walk(dataset):
         for im_f in files:
             split = im_f.split(os.extsep)
             fname = split[0]
             ext = split[-1]
+            count += 1
+            if count % 500 == 0:
+                print("{} done.".format(count))
             if ext in image_ext:
-                print('Processing: {}'.format(im_f))
-
                 image_file = os.path.join(dataset, im_f)
-                im = read_img(image_file, (224, 224), rescale=1 / 255.)
+                im = read_img(image_file, (input_size, input_size), rescale=1 / 255.)
                 pred = model.predict(im)
                 idx = np.argmax(pred, axis=1)
                 f_name = os.path.join(out_dir, '{}'.format(im_f))
