@@ -1,6 +1,8 @@
+import math
 import os
 import sys
 from argparse import ArgumentParser
+from decimal import Decimal
 
 import cv2
 import numpy as np
@@ -14,13 +16,13 @@ input_size = 224
 
 
 def load(weight_path):
-    model = build_resnet50_model(2, input_size)
+    model, _ = build_resnet50_model(2, input_size)
     model.load_weights(weight_path, by_name=True, skip_mismatch=True)
     model.summary()
     return model
 
 
-def main(weight_path, dataset, out_dir):
+def main(weight_path, dataset, out_dir, generate_output_image=True):
     model = load(weight_path=weight_path)
 
     count = 0
@@ -36,16 +38,19 @@ def main(weight_path, dataset, out_dir):
             if ext in image_ext:
                 image_file = os.path.join(dataset, im_f)
                 im = read_img(image_file, (input_size, input_size), rescale=1 / 255.)
-                pred = model.predict(im)
-                idx = np.argmax(pred, axis=1)
+                pred = model.predict(im)[0]
                 f_name = os.path.join(out_dir, '{}'.format(im_f))
                 img = cv2.imread(image_file)
-                txt1 = 'cat: {0:.06f}%'.format(pred[0][0] * 100)
-                txt2 = 'dog: {0:.06f}%'.format(pred[0][1] * 100)
-                img = put_txt(img, txt1, (10, 30), (0, 255, 0))
-                img = put_txt(img, txt2, (10, 60), (0, 255, 0))
-                results.append((int(fname), idx[0]))
-                save_img(img, f_name)
+                if generate_output_image:
+                    txt1 = 'cat: {0:.06f}%'.format(pred[0] * 100)
+                    txt2 = 'dog: {0:.06f}%'.format(pred[1] * 100)
+                    img = put_txt(img, txt1, (10, 30), (0, 255, 0))
+                    img = put_txt(img, txt2, (10, 60), (0, 255, 0))
+                    save_img(img, f_name)
+
+                probability = '{}'.format(math.ceil(pred[1] * 10000.) / 10000.)
+                # print('{}: {}'.format(im_f, probability))
+                results.append((int(fname), probability))
 
     results.sort(key=lambda x: x[0])
     with open(os.path.join(out_dir, 'submission.csv'), 'w', encoding='utf-8') as f_submission:
@@ -59,5 +64,6 @@ if __name__ == '__main__':
     parser.add_argument('weight_path', type=str)
     parser.add_argument('dataset', type=str)
     parser.add_argument('--out_dir', type=str, default='.')
+    parser.add_argument('--generate_output_image', type=bool, default=True)
     args = parser.parse_args(sys.argv[1:])
-    main(args.weight_path, args.dataset, args.out_dir)
+    main(args.weight_path, args.dataset, args.out_dir, args.generate_output_image)
