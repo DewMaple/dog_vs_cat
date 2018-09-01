@@ -82,19 +82,14 @@ def build_resnet50_model(num_classes, input_size):
 
     x = layers.Flatten()(x)
 
-    x = layers.Dense(1024, kernel_regularizer=l2(0.0005))(x)
+    x = layers.Dense(1024)(x)
     x = layers.BatchNormalization()(x)
-    x = layers.Activation(activation='relu')(x)
-    x = layers.Dropout(0.4)(x)
+    x = layers.PReLU(shared_axes=[1])(x)
+    x = layers.Dropout(0.75)(x)
 
-    x = layers.Dense(512, kernel_regularizer=l2(0.0005))(x)
+    x = layers.Dense(256)(x)
     x = layers.BatchNormalization()(x)
-    x = layers.Activation(activation='relu')(x)
-    x = layers.Dropout(0.8)(x)
-
-    x = layers.Dense(256, kernel_regularizer=l2(0.0005))(x)
-    x = layers.BatchNormalization()(x)
-    features = layers.Activation(activation='relu')(x)
+    features = layers.PReLU(shared_axes=[1])(x)
 
     prediction = layers.Dense(num_classes, activation='softmax', name='fc_prediction')(features)
     model = Model(inputs=base_model.input, outputs=prediction)

@@ -17,7 +17,7 @@ input_size = 224
 
 def load(weight_path):
     model, _ = build_resnet50_model(2, input_size)
-    model.load_weights(weight_path, by_name=True, skip_mismatch=True)
+    model.load_weights(weight_path)
     model.summary()
     return model
 
@@ -38,6 +38,7 @@ def main(weight_path, dataset, out_dir, generate_output_image=True):
             if ext in image_ext:
                 image_file = os.path.join(dataset, im_f)
                 im = read_img(image_file, (input_size, input_size), rescale=1 / 255.)
+
                 pred = model.predict(im)[0]
                 f_name = os.path.join(out_dir, '{}'.format(im_f))
                 img = cv2.imread(image_file)
@@ -48,7 +49,7 @@ def main(weight_path, dataset, out_dir, generate_output_image=True):
                     img = put_txt(img, txt2, (10, 60), (0, 255, 0))
                     save_img(img, f_name)
 
-                probability = '{}'.format(math.ceil(pred[1] * 10000.) / 10000.)
+                probability = '{}'.format(math.ceil(pred[1] * 1000.) / 1000.)
                 # print('{}: {}'.format(im_f, probability))
                 results.append((int(fname), probability))
 
