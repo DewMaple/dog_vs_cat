@@ -60,8 +60,8 @@ def main(weight_path, dataset, out_dir, generate_output_image=True):
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument('weight_path', type=str)
     parser.add_argument('dataset', type=str)
+    parser.add_argument('weight_path', type=str)
     parser.add_argument('--out_dir', type=str, default='.')
     parser.add_argument('--generate_output_image', type=bool, default=True)
     args = parser.parse_args(sys.argv[1:])
