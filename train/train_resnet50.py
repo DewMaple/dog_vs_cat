@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 
 import keras.backend as K
 from keras.callbacks import TensorBoard, ModelCheckpoint, Callback
-from keras.optimizers import Adam, SGD
+from keras.optimizers import SGD
 from keras_applications.resnet50 import preprocess_input
 from keras_preprocessing.image import ImageDataGenerator
 
@@ -41,25 +41,28 @@ def create_checkpoint():
 
 
 def main(train_dataset, val_dataset, epochs, batch_size, lr=0.001, image_size=224, weights_file=None):
-    train_gen = ImageDataGenerator(
-        preprocessing_function=preprocess_input,
-        rotation_range=30,
-        width_shift_range=0.2,
-        height_shift_range=0.2,
-        shear_range=0.2,
-        zoom_range=0.2,
-        horizontal_flip=True). \
-        flow_from_directory(train_dataset, target_size=(image_size, image_size))
+    train_gen = ImageDataGenerator(preprocessing_function=preprocess_input,
+                                   rotation_range=30,
+                                   width_shift_range=0.2,
+                                   height_shift_range=0.2,
+                                   shear_range=0.2,
+                                   zoom_range=0.2,
+                                   horizontal_flip=True). \
+        flow_from_directory(train_dataset,
+                            target_size=(image_size, image_size),
+                            batch_size=batch_size,
+                            class_mode='binary')
 
-    val_gen = ImageDataGenerator(
-        preprocessing_function=preprocess_input,
-        rotation_range=30,
-        width_shift_range=0.2,
-        height_shift_range=0.2,
-        shear_range=0.2,
-        zoom_range=0.2,
-        horizontal_flip=True). \
-        flow_from_directory(val_dataset, target_size=(image_size, image_size))
+    val_gen = ImageDataGenerator(preprocessing_function=preprocess_input,
+                                 rotation_range=30,
+                                 width_shift_range=0.2,
+                                 height_shift_range=0.2,
+                                 shear_range=0.2,
+                                 zoom_range=0.2,
+                                 horizontal_flip=True). \
+        flow_from_directory(val_dataset,
+                            target_size=(image_size, image_size),
+                            class_mode='binary')
 
     model, base_model = build_resnet50_model(train_gen.num_classes, image_size)
     if weights_file is not None:
@@ -68,32 +71,31 @@ def main(train_dataset, val_dataset, epochs, batch_size, lr=0.001, image_size=22
 
     callbacks, model_file_path = create_checkpoint()
 
-    for layer in base_model.layers:
-        layer.trainable = False
-
-    model.compile(optimizer=Adam(lr),
-                  loss="categorical_crossentropy",
-                  metrics=['accuracy'])
-
-    model.summary()
-    model.fit_generator(train_gen,
-                        epochs=50,
-                        steps_per_epoch=train_gen.samples / batch_size,
-                        callbacks=callbacks,
-                        validation_data=val_gen,
-                        validation_steps=val_gen.samples / batch_size,
-                        verbose=1)
+    # for layer in base_model.layers:
+    #     layer.trainable = False
+    #
+    # model.compile(optimizer=Adam(lr),
+    #               loss="categorical_crossentropy",
+    #               metrics=['accuracy'])
+    #
+    # model.summary()
+    # model.fit_generator(train_gen,
+    #                     epochs=50,
+    #                     steps_per_epoch=train_gen.samples / batch_size,
+    #                     callbacks=callbacks,
+    #                     validation_data=val_gen,
+    #                     validation_steps=val_gen.samples / batch_size,
+    #                     verbose=1)
 
     for layer in base_model.layers:
         layer.trainable = True
-
-    model.compile(optimizer=SGD(lr / 10., momentum=0.9, decay=0.001),
-                  loss="categorical_crossentropy",
+    model.compile(optimizer=SGD(lr, momentum=0.9),
+                  loss="binary_crossentropy",
                   metrics=['accuracy'])
 
     model.summary()
     model.fit_generator(train_gen,
-                        initial_epoch=51,
+                        initial_epoch=0,
                         epochs=epochs,
                         steps_per_epoch=train_gen.samples / batch_size,
                         callbacks=callbacks,
@@ -106,9 +108,9 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('train_dataset', type=str)
     parser.add_argument('val_dataset', type=str)
-    parser.add_argument('--epochs', type=int, default=200)
-    parser.add_argument('--lr', type=float, default=0.001)
-    parser.add_argument('--batch_size', type=float, default=512)
+    parser.add_argument('--epochs', type=int, default=30)
+    parser.add_argument('--lr', type=float, default=1e-4)
+    parser.add_argument('--batch_size', type=float, default=32)
     parser.add_argument('--image_size', type=int, default=224)
     parser.add_argument('--weights', type=str, default=None)
     args = parser.parse_args(sys.argv[1:])
