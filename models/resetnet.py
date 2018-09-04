@@ -74,29 +74,29 @@ def build_train_model(num_classes, input_size):
     return model_center_loss, base_model
 
 
-def build_resnet50_model(num_classes, input_size):
-    base_model = ResNet50(include_top=False, weights="imagenet", input_shape=(input_size, input_size, 3), pooling=None)
+def build_resnet50_model(num_classes=2, input_size=224):
+    base_model = ResNet50(include_top=False, weights="imagenet", input_shape=(input_size, input_size, 3), pooling='max')
 
-    x = base_model.output
-    x = layers.MaxPooling2D(input_shape=base_model.layers[-1].output_shape[1:])(x)
-
-    x = layers.Flatten()(x)
-
-    x = layers.Dropout(0.5)(x)
-
-    x = layers.Dense(1024)(x)
-    x = layers.BatchNormalization()(x)
-    x = layers.Activation('relu')(x)
-    x = layers.Dropout(0.5)(x)
-
-    x = layers.Dense(512)(x)
-    x = layers.BatchNormalization()(x)
-    features = layers.Activation('relu')(x)
+    features = base_model.output
+    # x = layers.Flatten()(x)
+    #
+    # x = layers.Dropout(0.5)(x)
+    #
+    # x = layers.Dense(1024)(x)
+    # x = layers.BatchNormalization()(x)
+    # x = layers.Activation('relu')(x)
+    # x = layers.Dropout(0.5)(x)
+    #
+    # x = layers.Dense(512)(x)
+    # x = layers.BatchNormalization()(x)
+    # features = layers.Activation('relu')(x)
 
     prediction = layers.Dense(1, activation='sigmoid', name='fc_prediction')(features)
     model = Model(inputs=base_model.input, outputs=prediction)
+
     return model, base_model
 
 
 if __name__ == '__main__':
-    inception_resnet_v2(2)
+    model, _ = build_resnet50_model(2)
+    model.summary()

@@ -13,8 +13,6 @@ input_size = 224
 
 
 def load(weight_path):
-    # model, _ = build_resnet50_model(2, input_size)
-    # model.load_weights(weight_path)
     model = load_model(weight_path)
     model.summary()
     return model
@@ -42,14 +40,12 @@ def main(weight_path, dataset, out_dir, generate_output_image=True):
                 img = cv2.imread(image_file)
                 if generate_output_image:
                     txt1 = 'cat: {0:.06f}%'.format(pred[0] * 100)
-                    txt2 = 'dog: {0:.06f}%'.format(pred[1] * 100)
+                    txt2 = 'dog: {0:.06f}%'.format((1 - pred[1]) * 100)
                     img = put_txt(img, txt1, (10, 30), (0, 255, 0))
                     img = put_txt(img, txt2, (10, 60), (0, 255, 0))
                     save_img(img, f_name)
 
-                probability = pred[1]
-                # print('{}: {}'.format(im_f, probability))
-                results.append((int(fname), probability))
+                results.append((int(fname), pred[0]))
 
     results.sort(key=lambda x: x[0])
     with open(os.path.join(out_dir, 'submission.csv'), 'w', encoding='utf-8') as f_submission:
@@ -63,6 +59,6 @@ if __name__ == '__main__':
     parser.add_argument('dataset', type=str)
     parser.add_argument('weight_path', type=str)
     parser.add_argument('--out_dir', type=str, default='.')
-    parser.add_argument('--generate_output_image', type=bool, default=True)
+    parser.add_argument('--generate_output_image', type=bool, default=False)
     args = parser.parse_args(sys.argv[1:])
     main(args.weight_path, args.dataset, args.out_dir, args.generate_output_image)
