@@ -6,6 +6,7 @@ from argparse import ArgumentParser
 import keras.backend as K
 from keras.callbacks import TensorBoard, ModelCheckpoint, Callback
 from keras.optimizers import SGD
+from keras_applications.resnet50 import preprocess_input
 from keras_preprocessing.image import ImageDataGenerator
 
 from models.resetnet import build_resnet50_model
@@ -50,7 +51,9 @@ def main(train_dataset, val_dataset, epochs, batch_size, lr=0.001, image_size=22
                                                     batch_size=batch_size,
                                                     class_mode='binary')
 
-    val_generator = ImageDataGenerator(rescale=1 / 255.,
+    val_generator = ImageDataGenerator(
+        preprocessing_function=preprocess_input,
+        rescale=1 / 255.,
                                        rotation_range=10,
                                        zoom_range=0.2,
                                        horizontal_flip=True)
@@ -66,8 +69,8 @@ def main(train_dataset, val_dataset, epochs, batch_size, lr=0.001, image_size=22
 
     callbacks, model_file_path = create_checkpoint()
 
-    for layer in base_model.layers:
-        layer.trainable = True
+    base_model.layers[0].trainable = False
+
     model.compile(optimizer=SGD(lr, momentum=0.9),
                   loss="binary_crossentropy",
                   metrics=['accuracy'])

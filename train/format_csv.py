@@ -1,5 +1,6 @@
 import math
 import sys
+import random
 
 
 def main(file_name, decimal=7, target_file=None):
@@ -12,6 +13,12 @@ def main(file_name, decimal=7, target_file=None):
             print(line)
             id_, label = line.split(',')
             label = math.ceil(float(label) * factor) / factor
+            if math.isclose(0, label):
+                # label = random.uniform(0, 0.000001)
+                label = 0.0005
+            elif math.isclose(1, label):
+                # label = random.uniform(0.999992, 1)
+                label = 0.9995
             result.append((int(id_), label))
 
     result.sort(key=lambda x: x[0])

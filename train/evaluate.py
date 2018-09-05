@@ -39,8 +39,8 @@ def main(weight_path, dataset, out_dir, generate_output_image=True):
                 f_name = os.path.join(out_dir, '{}'.format(im_f))
                 img = cv2.imread(image_file)
                 if generate_output_image:
-                    txt1 = 'cat: {0:.06f}%'.format(pred[0] * 100)
-                    txt2 = 'dog: {0:.06f}%'.format((1 - pred[1]) * 100)
+                    txt1 = 'cat: {0:.06f}%'.format((1 - pred[0]) * 100)
+                    txt2 = 'dog: {0:.06f}%'.format(pred[0] * 100)
                     img = put_txt(img, txt1, (10, 30), (0, 255, 0))
                     img = put_txt(img, txt2, (10, 60), (0, 255, 0))
                     save_img(img, f_name)
@@ -59,6 +59,6 @@ if __name__ == '__main__':
     parser.add_argument('dataset', type=str)
     parser.add_argument('weight_path', type=str)
     parser.add_argument('--out_dir', type=str, default='.')
-    parser.add_argument('--generate_output_image', type=bool, default=False)
+    parser.add_argument('--generate_output_image', type=bool, default=True)
     args = parser.parse_args(sys.argv[1:])
     main(args.weight_path, args.dataset, args.out_dir, args.generate_output_image)
